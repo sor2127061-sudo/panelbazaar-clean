@@ -1,0 +1,8 @@
+import { createClient } from '@/lib/supabase/server'
+import { redirect } from 'next/navigation'
+export const dynamic = 'force-dynamic'
+export default async function AdminUsers() {
+  const supabase = createClient(); const{data:users}=await supabase.from('profiles').select('*').order('created_at',{ascending:false})
+  async function toggleBan(fd: FormData) { 'use server'; const s=createClient(); await s.from('profiles').update({is_banned:fd.get('cb')!=='true'}).eq('id',fd.get('uid')); redirect('/admin/users') }
+  return (<div><h1 className="text-3xl font-bold mb-8 text-white">Users</h1><div className="bg-gray-900 border border-gray-800 rounded-lg overflow-hidden"><table className="w-full text-left"><thead className="bg-gray-800 text-gray-400"><tr><th className="p-4">Email</th><th className="p-4">Phone</th><th className="p-4">Wallet</th><th className="p-4">Role</th><th className="p-4">Status</th><th className="p-4">Action</th></tr></thead><tbody className="divide-y divide-gray-800">{users?.map((u: any)=>(<tr key={u.id}><td className="p-4 text-white">{u.email}</td><td className="p-4 text-gray-300">{u.phone}</td><td className="p-4 font-mono text-green-400">৳{u.wallet_balance}</td><td className="p-4 text-gray-300">{u.is_admin?'Admin':'User'}</td><td className="p-4">{u.is_banned?<span className="text-red-500">Banned</span>:<span className="text-gray-300">Active</span>}</td><td className="p-4">{!u.is_admin&&<form action={toggleBan}><input type="hidden" name="uid" value={u.id}/><input type="hidden" name="cb" value={String(u.is_banned)}/><button className="text-sm text-red-400">{u.is_banned?'Unban':'Ban'}</button></form>}</td></tr>))}</tbody></table></div></div>)
+}
