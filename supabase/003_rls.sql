@@ -1,0 +1,26 @@
+ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE products ENABLE ROW LEVEL SECURITY;
+ALTER TABLE product_packages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE license_keys ENABLE ROW LEVEL SECURITY;
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE transactions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE wallet_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE site_settings ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users read own profile" ON profiles FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users update own profile" ON profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Admins full access profiles" ON profiles USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true));
+CREATE POLICY "Public reads active products" ON products FOR SELECT USING (is_active = true);
+CREATE POLICY "Admins manage products" ON products USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true));
+CREATE POLICY "Public reads active packages" ON product_packages FOR SELECT USING (is_active = true);
+CREATE POLICY "Admins manage packages" ON product_packages USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true));
+CREATE POLICY "Users see own keys" ON license_keys FOR SELECT USING (sold_to = auth.uid());
+CREATE POLICY "Admins manage keys" ON license_keys USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true));
+CREATE POLICY "Users see own orders" ON orders FOR SELECT USING (user_id = auth.uid());
+CREATE POLICY "Admins manage orders" ON orders USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true));
+CREATE POLICY "Users see own transactions" ON transactions FOR SELECT USING (user_id = auth.uid());
+CREATE POLICY "Admins manage transactions" ON transactions USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true));
+CREATE POLICY "Users see own wallet logs" ON wallet_logs FOR SELECT USING (user_id = auth.uid());
+CREATE POLICY "Admins manage wallet logs" ON wallet_logs USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true));
+CREATE POLICY "Public reads settings" ON site_settings FOR SELECT USING (true);
+CREATE POLICY "Admins manage settings" ON site_settings USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND is_admin = true));
